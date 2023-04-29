@@ -8,6 +8,7 @@ from bs4 import BeautifulSoup
 import requests
 import os
 import shutil
+import sys
 
 log = log
 
@@ -27,14 +28,14 @@ class Main:
 
     def get_broken_images(self):
         articles_list = []
-        if reset_temp_table:
+        if not reset_temp_table:
             articles_list = self.DB.table('dede_archives') \
-                .join('dede_addonarticle', 'dede_archives.id', 'dede_addonarticle.id')  
+                .join('dede_addonarticle', 'dede_archives.id', '=', 'dede_addonarticle.aid')
         else:
-            id_filter = self.DB.table('temp_table').lists(temp_table_arc_field) 
+            id_filter = self.DB.table(temp_table).lists(temp_table_arc_field) 
             articles_list = self.DB.table('dede_archives') \
                 .where_not_in('dede_archives.id', id_filter) \
-                .join('dede_addonarticle', 'dede_archives.id', 'dede_addonarticle.id')
+                .join('dede_addonarticle', 'dede_archives.id', '=', 'dede_addonarticle.aid')
 
         return articles_list
     
@@ -80,6 +81,10 @@ class Main:
 
     def execute(self):
         article_list = self.get_broken_images()
+        if not article_list:
+            log.info('no article lists')
+            sys.exit()
+
         for articles in article_list.select(
             'dede_archives.id',
             'dede_archives.litpic',
@@ -92,7 +97,7 @@ class Main:
 
                 try:
                     self.DB.table('dede_archives').where('id', article_id).update({'litpic': thumbnail})
-                    self.DB.table('dede_addonarticle').where('id', article_id).update({'body': article_str})
+                    self.DB.table('dede_addonarticle').where('aid', article_id).update({'body': article_str})
                     
                     self.DB.table(temp_table).insert({'article_id': article_id})
 
