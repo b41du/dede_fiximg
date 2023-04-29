@@ -108,7 +108,7 @@ class Main:
             'dede_archives.id',
             'dede_archives.litpic',
             'dede_addonarticle.body'
-        ).order_by('dede_archives.id', 'desc').limit(1).chunk(100):
+        ).order_by('dede_archives.id', 'desc').chunk(100):
             for article in articles:
                 article_id = article['id']
 
