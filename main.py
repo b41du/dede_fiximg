@@ -40,7 +40,11 @@ class Main:
 
         return articles_list
     
+    def rebuild_image_urls(self, image_url):
+        log.warning(image_url)
+    
     def donwnload_images(self, image_url):
+        self.rebuild_image_urls(image_url)
         try:
             parsed_url = urlparse(image_url)
             if not parsed_url.scheme:
@@ -48,47 +52,36 @@ class Main:
 
             now = datetime.now()
             folder = now.strftime('%Y-%m-%d')
-            file_name = os.path.basename(image_url)
-            response = requests.get(url=image_url, headers=self.ua.random, stream=True)
+            file_name = str(str(str(os.path.basename(image_url)).split('@')[0]).split('?')[0])
+            response = requests.get(url=image_url, headers={'User-Agent': self.ua.random}, stream=True)
 
             if response.status_code != 200:
                 log.error('Failed download images from {}'.format(image_url))
                 return False
 
             file_path = '{}{}/{}'.format(images_destination_path, folder, file_name)
-            os.makedirs(os.path.dirname(file_path), exist_ok=True)
+
             with open(file_path, 'wb') as f:
                 shutil.copyfileobj(response.raw, f)
 
             return '{}{}/{}'.format(images_base_url, folder, file_name)
 
         except Exception as e:
-            log.error(str(e))
+            log.error(e)
             return False
     
     def handle_article_images(self, article=''):
         article_soup = BeautifulSoup(article, 'html.parser')
         thumbnail = ''
+        images_all = article_soup.find_all('img')
+        if images_all:
+            for image in article_soup.find_all('img'):
+                old_url = image['src']
+                image_url = old_url
 
-        for image in article_soup.find_all('img'):
-            old_url = image['src']
-            image_url = old_url
-
-            if image_url.endswith(images_default_url):
-                continue
-
-            if image_url.startswith('//'):
-                image_url = 'https://{}'.format(image_url)
-
-            local_img_url = self.donwnload_images(image_url)
-            if local_img_url and not thumbnail:
-                thumbnail = local_img_url
-            elif not local_img_url:
-                local_img_url = images_default_url
-            image['src'] = images_default_url if local_img_url else old_url
-
-        if not thumbnail:
-            thumbnail = images_default_url if use_default_img else ''
+                local_img_url = self.donwnload_images(image_url)
+                if local_img_url and not thumbnail:
+                    thumbnail = local_img_url
 
         return (thumbnail, str(article_soup))
 
@@ -102,7 +95,7 @@ class Main:
             'dede_archives.id',
             'dede_archives.litpic',
             'dede_addonarticle.body'
-        ).chunk(100):
+        ).order_by('dede_archives.id', 'desc').limit(1).chunk(100):
             for article in articles:
                 article_id = article['id']
 
