@@ -94,7 +94,10 @@ class Main:
                     self.DB.table('dede_archives').where('id', article_id).update({'litpic': thumbnail})
                     self.DB.table('dede_addonarticle').where('id', article_id).update({'body': article_str})
                     
+                    self.DB.table(temp_table).insert({'article_id': article_id})
+
                     log.info('Data updated id {}'.format(article_id))
+
 
                 except Exception as e:
                     log.error(str(e))
