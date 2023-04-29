@@ -3,6 +3,7 @@ from helpers import get_random_string
 from orator import DatabaseManager
 from fake_useragent import UserAgent
 from log import log
+from urllib.parse import urlparse
 from datetime import datetime
 from bs4 import BeautifulSoup
 import requests
@@ -41,6 +42,10 @@ class Main:
     
     def donwnload_images(self, image_url):
         try:
+            parsed_url = urlparse(image_url)
+            if not parsed_url.scheme:
+                image_url = 'http{}'.format(image_url)
+
             now = datetime.now()
             folder = now.strftime('%Y-%m-%d')
             file_name = os.path.basename(image_url)
