@@ -44,7 +44,7 @@ class Main:
         try:
             parsed_url = urlparse(image_url)
             if not parsed_url.scheme:
-                image_url = 'http{}'.format(image_url)
+                image_url = 'https{}'.format(image_url)
 
             now = datetime.now()
             folder = now.strftime('%Y-%m-%d')
