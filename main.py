@@ -10,6 +10,7 @@ import requests
 import os
 import shutil
 import sys
+from mimetypes import guess_extension
 
 log = log
 
@@ -48,26 +49,38 @@ class Main:
         try:
             parsed_url = urlparse(image_url)
             if not parsed_url.scheme:
-                image_url = 'https{}'.format(image_url)
+                image_url = 'https:{}'.format(image_url)
 
             now = datetime.now()
             folder = now.strftime('%Y-%m-%d')
-            file_name = str(str(str(os.path.basename(image_url)).split('@')[0]).split('?')[0])
+            file_name = '{}-{}'.format(now.strftime('%H%M%S'), get_random_string(4))
+            
             response = requests.get(url=image_url, headers={'User-Agent': self.ua.random}, stream=True)
 
-            file_path = '{}{}/{}'.format(images_destination_path, folder, file_name)
-            if os.path.exists(file_path):
-                return '{}{}/{}'.format(images_base_url, folder, file_name)
 
             if response.status_code != 200:
                 log.error('Failed download images from {}'.format(image_url))
                 return False
+            
+            content_type = response.headers.get('content-type', '').lower()
+            if 'image' not in content_type:
+                log.warning('{} response not an image'.format(image_url))
+                return False
+            
+            extension = guess_extension(content_type)
+            if not extension:
+                log.warning('{} not an image extension'.format(image_url))
+                return False
 
+            file_path = '{}{}/{}{}'.format(images_destination_path, folder, file_name, extension)
+            
+            if os.path.exists(file_path):
+                return '{}{}/{}{}'.format(images_base_url, folder, file_name, extension)
 
             with open(file_path, 'wb') as f:
                 shutil.copyfileobj(response.raw, f)
 
-            return '{}{}/{}'.format(images_base_url, folder, file_name)
+            return '{}{}/{}{}'.format(images_base_url, folder, file_name, extension)
 
         except Exception as e:
             log.error(e)
