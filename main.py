@@ -55,11 +55,14 @@ class Main:
             file_name = str(str(str(os.path.basename(image_url)).split('@')[0]).split('?')[0])
             response = requests.get(url=image_url, headers={'User-Agent': self.ua.random}, stream=True)
 
+            file_path = '{}{}/{}'.format(images_destination_path, folder, file_name)
+            if os.path.exists(file_path):
+                return '{}{}/{}'.format(images_base_url, folder, file_name)
+
             if response.status_code != 200:
                 log.error('Failed download images from {}'.format(image_url))
                 return False
 
-            file_path = '{}{}/{}'.format(images_destination_path, folder, file_name)
 
             with open(file_path, 'wb') as f:
                 shutil.copyfileobj(response.raw, f)
