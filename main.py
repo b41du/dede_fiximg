@@ -72,6 +72,10 @@ class Main:
 
         for image in article_soup.find_all('img'):
             image_url = image['src']
+
+            if image_url.startswith('//'):
+                image_url = 'https://{}'.format(image_url)
+
             local_img_url = self.donwnload_images(image_url)
             if local_img_url and not thumbnail:
                 thumbnail = local_img_url
