@@ -1,4 +1,4 @@
-from config import db_config, temp_table, reset_temp_table, temp_table_arc_field, images_destination_path, images_base_url, images_default_url
+from config import db_config, temp_table, reset_temp_table, temp_table_arc_field, images_destination_path, images_base_url, images_default_url, use_default_img
 from helpers import get_random_string
 from orator import DatabaseManager
 from fake_useragent import UserAgent
@@ -88,7 +88,7 @@ class Main:
             image['src'] = images_default_url if local_img_url else old_url
 
         if not thumbnail:
-            thumbnail = images_default_url if local_img_url else old_url
+            thumbnail = images_default_url if use_default_img else ''
 
         return (thumbnail, str(article_soup))
 
