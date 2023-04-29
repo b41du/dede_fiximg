@@ -83,6 +83,8 @@ class Main:
                 if local_img_url and not thumbnail:
                     thumbnail = local_img_url
 
+                image['src'] = image['src'].replace(old_url, local_img_url)
+
         return (thumbnail, str(article_soup))
 
     def execute(self):
