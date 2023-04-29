@@ -71,7 +71,11 @@ class Main:
         thumbnail = ''
 
         for image in article_soup.find_all('img'):
-            image_url = image['src']
+            old_url = image['src']
+            image_url = old_url
+
+            if image_url.endswith(images_default_url):
+                continue
 
             if image_url.startswith('//'):
                 image_url = 'https://{}'.format(image_url)
@@ -81,10 +85,10 @@ class Main:
                 thumbnail = local_img_url
             elif not local_img_url:
                 local_img_url = images_default_url
-            image['src'] = images_default_url
+            image['src'] = images_default_url if local_img_url else old_url
 
         if not thumbnail:
-            thumbnail = images_default_url
+            thumbnail = images_default_url if local_img_url else old_url
 
         return (thumbnail, str(article_soup))
 
