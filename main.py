@@ -1,4 +1,4 @@
-from config import db_config, temp_table, reset_temp_table, temp_table_arc_field, images_destination_path, images_base_url, images_default_url, use_default_img
+from config import db_config, temp_table, reset_temp_table, temp_table_arc_field, images_destination_path, images_base_url, images_default_url, use_default_img, skip_img_domain_contain
 from helpers import get_random_string
 from orator import DatabaseManager
 from fake_useragent import UserAgent
@@ -79,7 +79,15 @@ class Main:
                 old_url = image['src']
                 image_url = old_url
 
+                if any(str_skip in image_url for str_skip in skip_img_domain_contain):
+                    continue
+
                 local_img_url = self.donwnload_images(image_url)
+
+                if not local_img_url:
+                    image.extract()
+                    continue
+
                 if local_img_url and not thumbnail:
                     thumbnail = local_img_url
 
@@ -102,6 +110,8 @@ class Main:
                 article_id = article['id']
 
                 thumbnail, article_str = self.handle_article_images(article['body'])
+                if not thumbnail:
+                    thumbnail = images_default_url if use_default_img else ''
 
                 try:
                     self.DB.table('dede_archives').where('id', article_id).update({'litpic': thumbnail})
